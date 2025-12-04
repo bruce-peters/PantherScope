@@ -719,4 +719,12 @@ export default class VideoController implements TabController {
   showTimeline(): boolean {
     return true;
   }
+
+  /**
+   * Cleanup method called when tab is being closed.
+   * Releases stream capture resources to prevent memory leaks.
+   */
+  close(): void {
+    this.exitStreamMode();
+  }
 }

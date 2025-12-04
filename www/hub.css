@@ -1697,7 +1697,7 @@ div.video-synchronization {
 div.video-source > button {
   position: absolute;
   height: 70%;
-  width: calc(80% / 3);
+  width: calc(80% / 4);
   top: 15%;
   overflow: hidden;
 }
@@ -1727,19 +1727,28 @@ div.video-source > button:nth-child(3) > svg > path {
   stroke: #9aacff;
 }
 
+div.video-source > button:nth-child(4) > svg > path {
+  stroke: #a8e6b8;
+}
+
 div.video-source > button:nth-child(1) {
-  left: 5%;
+  left: 4%;
   background-color: #666666;
 }
 
 div.video-source > button:nth-child(2) {
-  left: calc(5% + 80% / 3 + 5%);
+  left: calc(4% + 80% / 4 + 4%);
   background-color: #ff0000;
 }
 
 div.video-source > button:nth-child(3) {
-  left: calc(5% + 80% / 3 + 5% + 80% / 3 + 5%);
+  left: calc(4% + 80% / 4 + 4% + 80% / 4 + 4%);
   background-color: #4556a5;
+}
+
+div.video-source > button:nth-child(4) {
+  left: calc(4% + 80% / 4 + 4% + 80% / 4 + 4% + 80% / 4 + 4%);
+  background-color: #32a852;
 }
 
 div.video-source > button:nth-child(1):hover {
@@ -1754,6 +1763,10 @@ div.video-source > button:nth-child(3):hover {
   background-color: #354695;
 }
 
+div.video-source > button:nth-child(4):hover {
+  background-color: #289842;
+}
+
 div.video-source > button:nth-child(1):active {
   background-color: #464646;
 }
@@ -1764,6 +1777,10 @@ div.video-source > button:nth-child(2):active {
 
 div.video-source > button:nth-child(3):active {
   background-color: #253685;
+}
+
+div.video-source > button:nth-child(4):active {
+  background-color: #1e8832;
 }
 
 div.video-timeline-section {
@@ -1848,6 +1865,145 @@ div.video-timeline-controls button {
   height: 30px;
   width: 30px;
   transform: translateY(-50%);
+}
+
+/* Video Stream UI */
+
+div.video-stream-info {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0%;
+  width: 30%;
+  padding: 8px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 5px;
+}
+
+@media (prefers-color-scheme: dark) {
+  div.video-stream-info {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+div.video-stream-url {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #555;
+}
+
+@media (prefers-color-scheme: dark) {
+  div.video-stream-url {
+    color: #aaa;
+  }
+}
+
+div.video-stream-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+
+span.video-stream-status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #888;
+  flex-shrink: 0;
+}
+
+span.video-stream-status-indicator.capturing {
+  background-color: #32a852;
+  box-shadow: 0 0 4px #32a852;
+}
+
+span.video-stream-status-indicator.error {
+  background-color: #e53935;
+}
+
+span.video-stream-status-indicator.idle,
+span.video-stream-status-indicator.disconnected {
+  background-color: #888;
+}
+
+span.video-stream-frame-count {
+  color: #666;
+}
+
+@media (prefers-color-scheme: dark) {
+  span.video-stream-frame-count {
+    color: #999;
+  }
+}
+
+button.video-stream-clear {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  opacity: 0.6;
+}
+
+button.video-stream-clear:hover {
+  opacity: 1;
+}
+
+button.video-stream-clear img {
+  width: 100%;
+  height: 100%;
+  filter: brightness(0%) saturate(0%) invert(40%);
+}
+
+@media (prefers-color-scheme: dark) {
+  button.video-stream-clear img {
+    filter: brightness(0%) saturate(0%) invert(70%);
+  }
+}
+
+div.video-stream-drop-target {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0%;
+  width: 30%;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #aaa;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-size: 12px;
+  color: #888;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+}
+
+div.video-stream-drop-target.drag-over {
+  border-color: #32a852;
+  background-color: rgba(50, 168, 82, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  div.video-stream-drop-target {
+    border-color: #555;
+    color: #777;
+  }
+
+  div.video-stream-drop-target.drag-over {
+    border-color: #32a852;
+    background-color: rgba(50, 168, 82, 0.15);
+  }
 }
 
 /* Joysticks */

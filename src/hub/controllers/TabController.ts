@@ -35,6 +35,13 @@ export default interface TabController {
 
   /** Returns data required by renderers. */
   getCommand(): unknown;
+
+  /**
+   * Optional cleanup method called when tab is being closed.
+   * Controllers should implement this to release resources like
+   * active connections, timers, or large data structures.
+   */
+  close?(): void;
 }
 
 export class NoopController implements TabController {

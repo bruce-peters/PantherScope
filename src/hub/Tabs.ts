@@ -586,6 +586,12 @@ export default class Tabs {
     if (!force && this.tabList[index].controller.UUID === this.activeXRUUID) {
       window.sendMainMessage("confirm-xr-close", this.activeXRUUID);
     } else {
+      // Call controller cleanup if it exists
+      const controller = this.tabList[index].controller;
+      if (typeof controller.close === "function") {
+        controller.close();
+      }
+
       this.RENDERER_CONTENT.removeChild(this.tabList[index].rendererElement);
       this.CONTROLS_CONTENT.removeChild(this.tabList[index].controlsElement);
       this.tabList.splice(index, 1);
