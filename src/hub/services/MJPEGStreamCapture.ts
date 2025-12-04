@@ -5,7 +5,7 @@
 // license that can be found in the LICENSE file
 // at the root directory of this project.
 
-import { StreamFrame, StreamCaptureState } from "../../shared/StreamFrame";
+import { StreamCaptureState, StreamFrame } from "../../shared/StreamFrame";
 
 /**
  * Service class for capturing frames from an MJPEG video stream.
@@ -98,7 +98,8 @@ export default class MJPEGStreamCapture {
 
     try {
       const response = await fetch(url, {
-        signal: this.abortController.signal
+        signal: this.abortController.signal,
+        mode: "cors"
       });
 
       if (!response.ok) {
@@ -129,9 +130,7 @@ export default class MJPEGStreamCapture {
       this.isCapturing = false;
       this.notifyStateChange();
     }
-  }
-
-  /**
+  } /**
    * Stops the current capture session.
    */
   stopCapture(): void {

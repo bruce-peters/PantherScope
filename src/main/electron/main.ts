@@ -2790,6 +2790,50 @@ function createEditFovWindow(parentWindow: Electron.BrowserWindow, fov: number, 
 }
 
 /**
+ * Creates a new window for stream URL input.
+ * @param parentWindow The parent window to use for alignment
+ * @param initialUrl Initial URL value (e.g., from clipboard)
+ * @param callback Window callback - receives URL string or null if cancelled
+ */
+function createStreamUrlWindow(
+  parentWindow: Electron.BrowserWindow,
+  initialUrl: string,
+  callback: (url: string | null) => void
+) {
+  const streamUrlWindow = new BrowserWindow({
+    width: 450,
+    height: 81,
+    useContentSize: true,
+    resizable: false,
+    icon: WINDOW_ICON,
+    show: false,
+    parent: parentWindow,
+    modal: true,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js")
+    }
+  });
+
+  // Finish setup
+  streamUrlWindow.setMenu(null);
+  streamUrlWindow.once("ready-to-show", streamUrlWindow.show);
+  streamUrlWindow.webContents.on("dom-ready", () => {
+    // Create ports on reload
+    const { port1, port2 } = new MessageChannelMain();
+    streamUrlWindow.webContents.postMessage("port", null, [port1]);
+    port2.postMessage(initialUrl);
+    port2.on("message", (event) => {
+      streamUrlWindow.destroy();
+      callback(event.data);
+    });
+    streamUrlWindow.on("blur", () => port2.postMessage({ isFocused: false }));
+    streamUrlWindow.on("focus", () => port2.postMessage({ isFocused: true }));
+    port2.start();
+  });
+  streamUrlWindow.loadFile(path.join(__dirname, "../www/streamUrl.html"));
+}
+
+/**
  * Creates a new window for export options.
  * @param parentWindow The parent window to use for alignment
  * @param supportsAkit Whether AdvantageKit timestamps are supported
@@ -3302,6 +3346,15 @@ if (process.platform === "linux") {
 }
 
 app.whenReady().then(() => {
+  // Set up VideoProcessor stream URL dialog callback
+  VideoProcessor.showStreamUrlDialog = (window, initialUrl) => {
+    return new Promise((resolve) => {
+      createStreamUrlWindow(window, initialUrl, (url) => {
+        resolve(url);
+      });
+    });
+  };
+
   // Check preferences and set theme
   let prefs = DEFAULT_PREFS;
   if (process.platform === "linux") {

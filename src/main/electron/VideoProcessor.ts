@@ -495,6 +495,15 @@ export class VideoProcessor {
             });
           });
         break;
+      case VideoSource.Stream:
+        this.getStreamUrl(window)
+          .then((url) => {
+            dataCallback({ uuid: uuid, streamUrl: url });
+          })
+          .catch(() => {
+            dataCallback({ uuid: uuid, streamUrl: null });
+          });
+        break;
     }
   }
 
@@ -532,6 +541,48 @@ export class VideoProcessor {
         }
         return result.filePaths[0];
       });
+  }
+
+  /** Callback for showing the stream URL input dialog - set by main.ts */
+  static showStreamUrlDialog: ((window: BrowserWindow, initialUrl: string) => Promise<string | null>) | null = null;
+
+  /** Gets an MJPEG stream URL from the user (clipboard or input dialog) */
+  private static getStreamUrl(window: BrowserWindow): Promise<string> {
+    return new Promise((resolve, reject) => {
+      // First try to get URL from clipboard
+      let clipboardText = clipboard.readText().trim();
+
+      if (this.showStreamUrlDialog) {
+        // Use the custom dialog with clipboard text as initial value
+        this.showStreamUrlDialog(window, this.isValidStreamUrl(clipboardText) ? clipboardText : "")
+          .then((url) => {
+            if (url) {
+              resolve(url);
+            } else {
+              reject();
+            }
+          })
+          .catch(reject);
+      } else {
+        // Fallback: just use clipboard if valid
+        if (this.isValidStreamUrl(clipboardText)) {
+          resolve(clipboardText);
+        } else {
+          reject();
+        }
+      }
+    });
+  }
+
+  /** Validates if a string is a valid stream URL */
+  private static isValidStreamUrl(url: string): boolean {
+    if (!url) return false;
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+      return false;
+    }
   }
 
   /** Gets the direct download URL based on a YouTube URL */

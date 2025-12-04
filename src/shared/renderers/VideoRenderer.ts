@@ -11,26 +11,42 @@ export default class VideoRenderer implements TabRenderer {
   private IMAGE: HTMLImageElement;
 
   private aspectRatio: number | null = null;
+  private lastSrc: string = "";
 
   constructor(root: HTMLElement) {
     this.IMAGE = root.getElementsByTagName("img")[0] as HTMLImageElement;
+
+    // Update aspect ratio when image loads (needed for blob URLs)
+    this.IMAGE.addEventListener("load", () => {
+      this.updateAspectRatio();
+    });
   }
 
   getAspectRatio(): number | null {
     return this.aspectRatio;
   }
 
-  render(command: unknown): void {
-    if (typeof command !== "string") return;
-    this.IMAGE.hidden = command === "";
-    this.IMAGE.src = command;
+  /** Updates aspect ratio from current image dimensions */
+  private updateAspectRatio(): void {
     let width = this.IMAGE.naturalWidth;
     let height = this.IMAGE.naturalHeight;
     if (width > 0 && height > 0) {
       this.aspectRatio = width / height;
-    } else {
-      this.aspectRatio = null;
     }
+  }
+
+  render(command: unknown): void {
+    if (typeof command !== "string") return;
+    this.IMAGE.hidden = command === "";
+
+    // Only update src if it changed (avoids reloading the same image)
+    if (command !== this.lastSrc) {
+      this.IMAGE.src = command;
+      this.lastSrc = command;
+    }
+
+    // Try to update aspect ratio immediately (works for cached/local images)
+    this.updateAspectRatio();
   }
 
   saveState(): unknown {
