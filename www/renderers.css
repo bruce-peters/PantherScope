@@ -716,6 +716,48 @@ div.video-container img {
   object-fit: contain;
 }
 
+div.video-stream-drop-target {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px dashed #aaa;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-size: 16px;
+  color: #888;
+  background-color: rgba(0, 0, 0, 0.02);
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+}
+
+div.video-stream-drop-target[hidden] {
+  display: none;
+}
+
+div.video-stream-drop-target.drag-over {
+  border-color: #32a852;
+  background-color: rgba(50, 168, 82, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  div.video-stream-drop-target {
+    border-color: #555;
+    color: #777;
+    background-color: rgba(255, 255, 255, 0.02);
+  }
+
+  div.video-stream-drop-target.drag-over {
+    border-color: #32a852;
+    background-color: rgba(50, 168, 82, 0.15);
+  }
+}
+
 /* Joysticks */
 
 canvas.joysticks-canvas {

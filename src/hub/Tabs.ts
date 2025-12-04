@@ -513,7 +513,7 @@ export default class Tabs {
         renderer = new StatisticsRenderer(rendererElement);
         break;
       case TabType.Video:
-        controller = new VideoController(controlsElement);
+        controller = new VideoController(controlsElement, rendererElement);
         renderer = new VideoRenderer(rendererElement);
         break;
       case TabType.Joysticks:

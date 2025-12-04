@@ -6,7 +6,7 @@
 // at the root directory of this project.
 
 import { MatchType } from "../../shared/MatchInfo";
-import { StreamSourceConfig, isValidStreamUrl } from "../../shared/StreamConfig";
+import { StreamSourceConfig, extractStreamUrl, isValidStreamUrl } from "../../shared/StreamConfig";
 import VideoSource from "../../shared/VideoSource";
 import { getEnabledData, getMatchInfo, getOrDefault } from "../../shared/log/LogUtil";
 import LoggableType from "../../shared/log/LoggableType";
@@ -42,6 +42,7 @@ export default class VideoController implements TabController {
   private VIDEO_TIMELINE_PROGRESS: HTMLElement;
 
   private root: HTMLElement;
+  private rendererRoot: HTMLElement;
 
   // File/YouTube/TBA video state
   private imgFolder: string | null = null;
@@ -58,14 +59,21 @@ export default class VideoController implements TabController {
   private isStreamMode: boolean = false;
   private lastFieldValue: string | null = null;
 
+  // Event listener cleanup
+  private dragAbortController: AbortController | null = null;
+
+  // Track if we're actively dragging over the drop target
+  private isDraggingOver: boolean = false;
+
   private locked: boolean = false;
   private lockedStartLog: number = 0;
   private playing: boolean = false;
   private playStartFrame: number = 0;
   private playStartReal: number = 0;
 
-  constructor(root: HTMLElement) {
+  constructor(root: HTMLElement, rendererRoot: HTMLElement) {
     this.root = root;
+    this.rendererRoot = rendererRoot;
 
     // Get elements
     let sourceSection = root.getElementsByClassName("video-source")[0] as HTMLElement;
@@ -82,7 +90,10 @@ export default class VideoController implements TabController {
     this.STREAM_STATUS_INDICATOR = root.getElementsByClassName("video-stream-status-indicator")[0] as HTMLElement;
     this.STREAM_FRAME_COUNT = root.getElementsByClassName("video-stream-frame-count")[0] as HTMLElement;
     this.STREAM_CLEAR_BUTTON = root.getElementsByClassName("video-stream-clear")[0] as HTMLButtonElement;
-    this.STREAM_DROP_TARGET = root.getElementsByClassName("video-stream-drop-target")[0] as HTMLElement;
+
+    // Drop target is in the renderer area
+    this.STREAM_DROP_TARGET = rendererRoot.getElementsByClassName("video-stream-drop-target")[0] as HTMLElement;
+    console.log("VideoController init - STREAM_DROP_TARGET:", this.STREAM_DROP_TARGET, "rendererRoot:", rendererRoot);
 
     this.LOCK_BUTTON = timelineSection.children[0] as HTMLButtonElement;
     this.UNLOCK_BUTTON = timelineSection.children[1] as HTMLButtonElement;
@@ -170,7 +181,7 @@ export default class VideoController implements TabController {
       this.TBA_SOURCE.classList.remove("animating");
       this.STREAM_SOURCE.classList.add("animating");
 
-      // Try to get URL from clipboard
+      // Try to get URL from clipboard/dialog
       window.sendMainMessage("select-video", {
         uuid: this.UUID,
         source: VideoSource.Stream,
@@ -271,74 +282,133 @@ export default class VideoController implements TabController {
       }
     });
     this.updateButtons();
+
+    // Initialize drop target visibility
+    this.updateDropTargetVisibility();
+  }
+
+  /**
+   * Updates the drop target visibility based on whether video data is loaded or streaming.
+   * Shows the drop target when no video is loaded, hides it when video is playing or stream is active.
+   * Does not hide if user is actively dragging over the drop target.
+   */
+  private updateDropTargetVisibility(): void {
+    if (!this.STREAM_DROP_TARGET) return;
+    // Don't hide while actively dragging over the target
+    if (this.isDraggingOver) return;
+    // Hide drop target when streaming (even before frames arrive) or when video data is loaded
+    this.STREAM_DROP_TARGET.hidden = this.isStreamMode || this.hasData();
   }
 
   /**
    * Sets up drag and drop handling for URL fields.
    */
   private setupDragAndDrop(): void {
-    window.addEventListener("drag-update", (event) => {
-      const dragData = (event as CustomEvent).detail;
+    // Create abort controller for cleanup
+    this.dragAbortController = new AbortController();
 
-      // Only handle field drags
-      if (!("fields" in dragData.data)) return;
+    // Get the global renderer content area for bounds checking
+    const rendererContent = document.getElementsByClassName("renderer-content")[0] as HTMLElement;
 
-      const rootRect = this.root.getBoundingClientRect();
-      const x = dragData.x;
-      const y = dragData.y;
+    window.addEventListener(
+      "drag-update",
+      (event) => {
+        const dragData = (event as CustomEvent).detail;
 
-      // Check if within our bounds
-      const isInBounds =
-        x >= rootRect.left && x <= rootRect.right && y >= rootRect.top && y <= rootRect.bottom && !this.root.hidden;
+        // Only handle field drags
+        if (!("fields" in dragData.data)) return;
 
-      if (!isInBounds) {
-        this.STREAM_DROP_TARGET.hidden = true;
-        return;
-      }
+        // Only handle if this tab's renderer is visible (not hidden)
+        if (this.rendererRoot.hidden) {
+          return;
+        }
 
-      // Check if any dropped field is a String type
-      const fields: string[] = dragData.data.fields;
-      const stringField = fields.find((field) => {
-        const logType = window.log.getType(field);
-        return logType === LoggableType.String;
-      });
+        // Safety check - drop target might not exist if element wasn't properly initialized
+        if (!this.STREAM_DROP_TARGET) return;
 
-      if (!stringField) {
-        this.STREAM_DROP_TARGET.hidden = true;
-        return;
-      }
+        // Check bounds against renderer content area (the visible renderer container)
+        const rendererRect = rendererContent.getBoundingClientRect();
+        const x = dragData.x;
+        const y = dragData.y;
 
-      if (dragData.end) {
-        // Drop occurred
-        this.STREAM_DROP_TARGET.hidden = true;
-        this.handleFieldDrop(stringField);
-      } else {
-        // Show drop target
+        // Check if within our bounds
+        const isInBounds =
+          x >= rendererRect.left && x <= rendererRect.right && y >= rendererRect.top && y <= rendererRect.bottom;
+
+        // Check if any dropped field is a String or StringArray type
+        const fields: string[] = dragData.data.fields;
+        const validField = fields.find((field) => {
+          const logType = window.log.getType(field);
+          return logType === LoggableType.String || logType === LoggableType.StringArray;
+        });
+
+        if (!isInBounds || !validField) {
+          // No longer dragging over valid target
+          this.isDraggingOver = false;
+          this.STREAM_DROP_TARGET.classList.remove("drag-over");
+          // When dragging out of bounds, revert to default visibility (based on hasData)
+          this.updateDropTargetVisibility();
+          return;
+        }
+
+        // Mark that we're actively dragging over the target
+        this.isDraggingOver = true;
+
+        // Show drop target when dragging valid field over our area
         this.STREAM_DROP_TARGET.hidden = false;
-      }
-    });
+        this.STREAM_DROP_TARGET.classList.add("drag-over");
+
+        if (dragData.end) {
+          // Drop occurred - clear dragging state
+          this.isDraggingOver = false;
+          this.STREAM_DROP_TARGET.classList.remove("drag-over");
+          // After drop, handleFieldDrop will start stream which will update visibility
+          this.handleFieldDrop(validField);
+        }
+      },
+      { signal: this.dragAbortController.signal }
+    );
   }
 
   /**
    * Handles a field drop, starting stream capture if the field contains a valid URL.
+   * Supports both String fields and StringArray fields (uses first element).
    */
   private handleFieldDrop(fieldKey: string): void {
     // Get the current value of the field
-    const renderTime = window.selection.getRenderTime();
-    if (renderTime === null) return;
+    let renderTime = window.selection.getRenderTime();
 
-    const value = getOrDefault(window.log, fieldKey, LoggableType.String, renderTime, "");
+    // If no time selected, try to use 0 or the first available timestamp
+    if (renderTime === null) {
+      renderTime = 0;
+    }
+
+    const logType = window.log.getType(fieldKey);
+    let value: string = "";
+
+    if (logType === LoggableType.String) {
+      value = getOrDefault(window.log, fieldKey, LoggableType.String, renderTime, "");
+    } else if (logType === LoggableType.StringArray) {
+      const arr = getOrDefault(window.log, fieldKey, LoggableType.StringArray, renderTime, []) as string[];
+      if (arr.length > 0) {
+        value = arr[0];
+      }
+    }
+
     if (!value || !isValidStreamUrl(value)) {
       window.sendMainMessage("error", {
         title: "Invalid stream URL",
-        content: `The field "${fieldKey}" does not contain a valid HTTP URL. Expected format: http://... or https://...`
+        content: `The field "${fieldKey}" does not contain a valid stream URL. Expected format: http://... or mjpg:http://...`
       });
       return;
     }
 
+    // Extract the actual URL (handles mjpg: prefix)
+    const url = extractStreamUrl(value);
+
     // Start stream mode with this field
     this.streamFieldKey = fieldKey;
-    this.startStreamCapture(value);
+    this.startStreamCapture(url);
   }
 
   /**
@@ -378,6 +448,7 @@ export default class VideoController implements TabController {
     this.streamCapture.startCapture(url);
 
     // Update UI
+    this.updateDropTargetVisibility();
     this.updateStreamUI();
     this.updateButtons();
 
@@ -399,8 +470,10 @@ export default class VideoController implements TabController {
     this.streamFieldKey = null;
     this.streamUrl = null;
     this.lastFieldValue = null;
-    this.STREAM_INFO.hidden = true;
-    this.STREAM_DROP_TARGET.hidden = true;
+    if (this.STREAM_INFO) {
+      this.STREAM_INFO.hidden = true;
+    }
+    this.updateDropTargetVisibility();
   }
 
   /**
@@ -445,6 +518,9 @@ export default class VideoController implements TabController {
 
       // Update frame count
       this.STREAM_FRAME_COUNT.textContent = `${state.frames.length} frames`;
+
+      // Update drop target visibility (hide when we have frames)
+      this.updateDropTargetVisibility();
     }
   }
 
@@ -619,6 +695,7 @@ export default class VideoController implements TabController {
       this.playing = false;
     }
     this.updateButtons();
+    this.updateDropTargetVisibility();
   }
 
   getCommand(): unknown {
@@ -696,11 +773,30 @@ export default class VideoController implements TabController {
     if (this.isStreamMode && this.streamFieldKey) {
       const renderTime = window.selection.getRenderTime();
       if (renderTime !== null) {
-        const value = getOrDefault(window.log, this.streamFieldKey, LoggableType.String, renderTime, "");
+        const logType = window.log.getType(this.streamFieldKey);
+        let value: string = "";
+
+        if (logType === LoggableType.String) {
+          value = getOrDefault(window.log, this.streamFieldKey, LoggableType.String, renderTime, "");
+        } else if (logType === LoggableType.StringArray) {
+          const arr = getOrDefault(
+            window.log,
+            this.streamFieldKey,
+            LoggableType.StringArray,
+            renderTime,
+            []
+          ) as string[];
+          if (arr.length > 0) {
+            value = arr[0];
+          }
+        }
+
         if (value && value !== this.lastFieldValue && isValidStreamUrl(value)) {
           this.lastFieldValue = value;
-          if (value !== this.streamUrl) {
-            this.startStreamCapture(value);
+          // Extract the actual URL (handles mjpg: prefix)
+          const url = extractStreamUrl(value);
+          if (url !== this.streamUrl) {
+            this.startStreamCapture(url);
           }
         }
       }
@@ -722,9 +818,15 @@ export default class VideoController implements TabController {
 
   /**
    * Cleanup method called when tab is being closed.
-   * Releases stream capture resources to prevent memory leaks.
+   * Releases stream capture resources and removes event listeners to prevent memory leaks.
    */
   close(): void {
     this.exitStreamMode();
+
+    // Remove the drag event listener
+    if (this.dragAbortController) {
+      this.dragAbortController.abort();
+      this.dragAbortController = null;
+    }
   }
 }
