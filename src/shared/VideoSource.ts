@@ -8,7 +8,8 @@
 enum VideoSource {
   Local,
   YouTube,
-  TheBlueAlliance
+  TheBlueAlliance,
+  Stream
 }
 
 export default VideoSource;
