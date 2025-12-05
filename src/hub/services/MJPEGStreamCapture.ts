@@ -12,7 +12,7 @@ import { StreamCaptureState, StreamFrame } from "../../shared/StreamFrame";
  * Handles connection, frame parsing, storage, and cleanup.
  */
 export default class MJPEGStreamCapture {
-  private static DEFAULT_MAX_FRAMES = 1000;
+  private static DEFAULT_MAX_FRAMES = 100000;
 
   private url: string = "";
   private isCapturing: boolean = false;

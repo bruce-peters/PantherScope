@@ -29,6 +29,7 @@ function getState(): null | BetaState {
 
 /** Returns whether the current build is a beta. */
 export function isBeta(): boolean {
+  return false;
   return BETA_CONFIG !== null;
 }
 
