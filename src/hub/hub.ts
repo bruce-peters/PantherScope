@@ -193,9 +193,9 @@ function applySidebarColor() {
     root.style.setProperty("--side-bar-bg-light", customColor);
     root.style.setProperty("--side-bar-bg-dark", customColor);
   } else {
-    // Reset to default colors
-    root.style.setProperty("--side-bar-bg-light", "#e9e9e9");
-    root.style.setProperty("--side-bar-bg-dark", "#292929");
+    // Reset to default red alliance color
+    root.style.setProperty("--side-bar-bg-light", "#af2437");
+    root.style.setProperty("--side-bar-bg-dark", "#af2437");
   }
 }
 

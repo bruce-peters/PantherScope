@@ -10,9 +10,11 @@ const USE_DEFAULT_BUTTON = document.getElementById("useDefault") as HTMLButtonEl
 const EXIT_BUTTON = document.getElementById("exit") as HTMLInputElement;
 const CONFIRM_BUTTON = document.getElementById("confirm") as HTMLInputElement;
 
+let messagePort: MessagePort | null = null;
+
 window.addEventListener("message", (event) => {
   if (event.data === "port") {
-    let messagePort = event.ports[0];
+    messagePort = event.ports[0];
     messagePort.onmessage = (event) => {
       // Update button focus
       if (typeof event.data === "object" && "isFocused" in event.data) {
@@ -28,25 +30,27 @@ window.addEventListener("message", (event) => {
 
       // Normal message - load current color
       let currentColor: string | null = event.data;
-      COLOR_PICKER.value = currentColor ?? "#e9e9e9";
-
-      // Close function
-      function close(newColor: string | null) {
-        messagePort.postMessage(newColor);
-      }
-
-      // Set up buttons
-      USE_DEFAULT_BUTTON.addEventListener("click", () => {
-        close(null);
-      });
-
-      EXIT_BUTTON.addEventListener("click", () => {
-        messagePort.postMessage("cancel");
-      });
-
-      CONFIRM_BUTTON.addEventListener("click", () => {
-        close(COLOR_PICKER.value);
-      });
+      COLOR_PICKER.value = currentColor ?? "#af2437";
     };
+    messagePort.start();
+  }
+});
+
+// Set up button event listeners
+USE_DEFAULT_BUTTON.addEventListener("click", () => {
+  if (messagePort) {
+    messagePort.postMessage(null);
+  }
+});
+
+EXIT_BUTTON.addEventListener("click", () => {
+  if (messagePort) {
+    messagePort.postMessage("cancel");
+  }
+});
+
+CONFIRM_BUTTON.addEventListener("click", () => {
+  if (messagePort) {
+    messagePort.postMessage(COLOR_PICKER.value);
   }
 });
