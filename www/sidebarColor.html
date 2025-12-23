@@ -17,6 +17,16 @@
     <link rel="stylesheet" href="global.css" />
     <link rel="stylesheet" href="prompts.css" />
     <script type="module" src="../bundles/sidebarColor.js"></script>
+    <style>
+      #useDefault {
+        position: static !important;
+        width: auto !important;
+        height: auto !important;
+        padding: 8px 16px !important;
+        font-size: 14px !important;
+        min-width: 100px !important;
+      }
+    </style>
     <title>Sidebar Color &mdash; AdvantageScope</title>
   </head>
 
@@ -30,12 +40,6 @@
           <td class="label">Color</td>
           <td class="input" tabindex="-1">
             <input type="color" id="colorPicker" />
-          </td>
-        </tr>
-        <tr>
-          <td class="label">&nbsp;</td>
-          <td class="input" tabindex="-1">
-            <button id="useDefault" tabindex="-1">Use Default</button>
           </td>
         </tr>
       </tbody>
