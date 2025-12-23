@@ -716,6 +716,114 @@ const Field3dController_Config: SourceListConfig = {
       previewType: "Pose3d"
     },
     {
+      key: "fovCone",
+      display: "FOV Cone",
+      symbol: "camera.viewfinder",
+      showInTypeName: true,
+      color: "color",
+      sourceTypes: [
+        "Pose2d",
+        "Pose3d",
+        "Pose2d[]",
+        "Pose3d[]",
+        "Transform2d",
+        "Transform3d",
+        "Transform2d[]",
+        "Transform3d[]"
+      ],
+      showDocs: true,
+      options: [
+        {
+          key: "color",
+          display: "Color",
+          showInTypeName: false,
+          values: NeonColors
+        },
+        {
+          key: "style",
+          display: "Style",
+          showInTypeName: true,
+          values: [
+            { key: "wireframe", display: "Wireframe" },
+            { key: "filled", display: "Filled" }
+          ]
+        },
+        {
+          key: "depth",
+          display: "Depth",
+          showInTypeName: false,
+          values: [
+            { key: "1", display: "1m" },
+            { key: "2", display: "2m" },
+            { key: "3", display: "3m" },
+            { key: "5", display: "5m" }
+          ]
+        }
+      ],
+      initialSelectionOption: "color",
+      previewType: "Pose3d"
+    },
+    {
+      key: "fovConeLegacy",
+      display: "FOV Cone",
+      symbol: "camera.viewfinder",
+      showInTypeName: true,
+      color: "color",
+      sourceTypes: ["NumberArray"],
+      showDocs: false,
+      options: [
+        {
+          key: "color",
+          display: "Color",
+          showInTypeName: false,
+          values: NeonColors
+        },
+        {
+          key: "style",
+          display: "Style",
+          showInTypeName: true,
+          values: [
+            { key: "wireframe", display: "Wireframe" },
+            { key: "filled", display: "Filled" }
+          ]
+        },
+        {
+          key: "depth",
+          display: "Depth",
+          showInTypeName: false,
+          values: [
+            { key: "1", display: "1m" },
+            { key: "2", display: "2m" },
+            { key: "3", display: "3m" },
+            { key: "5", display: "5m" }
+          ]
+        },
+        {
+          key: "format",
+          display: "Format",
+          showInTypeName: false,
+          values: [
+            { key: "Pose2d", display: "2D Pose(s)" },
+            { key: "Pose3d", display: "3D Pose(s)" },
+            { key: "Translation2d", display: "2D Translation(s)" },
+            { key: "Translation3d", display: "3D Translation(s)" }
+          ]
+        },
+        {
+          key: "units",
+          display: "Rotation Units",
+          showInTypeName: false,
+          values: [
+            { key: "radians", display: "Radians" },
+            { key: "degrees", display: "Degrees" }
+          ]
+        }
+      ],
+      initialSelectionOption: "color",
+      numberArrayDeprecated: true,
+      previewType: "Pose3d"
+    },
+    {
       key: "coneLegacy",
       display: "Cone",
       symbol: "cone.fill",

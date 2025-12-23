@@ -24,6 +24,7 @@ import ObjectManager from "./field3d/ObjectManager";
 import AprilTagManager from "./field3d/objectManagers/AprilTagManager";
 import AxesManager from "./field3d/objectManagers/AxesManager";
 import ConeManager from "./field3d/objectManagers/ConeManager";
+import FovConeManager from "./field3d/objectManagers/FovConeManager";
 import GamePieceManager from "./field3d/objectManagers/GamePieceManager";
 import HeatmapManager from "./field3d/objectManagers/HeatmapManager";
 import RobotManager from "./field3d/objectManagers/RobotManager";
@@ -476,6 +477,9 @@ export default class Field3dRendererImpl implements TabRenderer {
         break;
       case "cone":
         manager = new ConeManager(...args);
+        break;
+      case "fovCone":
+        manager = new FovConeManager(...args);
         break;
     }
     manager.setResolution(this.resolutionVector);

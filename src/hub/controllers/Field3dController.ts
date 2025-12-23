@@ -223,7 +223,17 @@ export default class Field3dController implements TabController {
   }
 
   getActiveFields(): string[] {
-    return [...this.sourceList.getActiveFields(), ...ALLIANCE_KEYS, ...DRIVER_STATION_KEYS];
+    let activeFields = [...this.sourceList.getActiveFields(), ...ALLIANCE_KEYS, ...DRIVER_STATION_KEYS];
+
+    // Add FOV child fields for FOV cone types
+    let sources = this.sourceList.getState(true);
+    sources.forEach((source) => {
+      if (source.type === "fovCone" || source.type === "fovConeLegacy") {
+        activeFields.push(source.logKey + "/fov");
+      }
+    });
+
+    return activeFields;
   }
 
   showTimeline(): boolean {
@@ -546,6 +556,31 @@ export default class Field3dController implements TabController {
             poses: poses
           });
           break;
+        case "fovCone":
+        case "fovConeLegacy": {
+          // Get FOV value from child number field if present
+          let fov = 60; // Default FOV in degrees
+          let fovChildKey = source.logKey + "/fov";
+          if (window.log.getType(fovChildKey) === LoggableType.Number) {
+            let fovValues = window.log.getNumber(fovChildKey, time!, time!, this.UUID);
+            if (fovValues && fovValues.values.length > 0) {
+              fov = fovValues.values[0];
+            }
+          }
+
+          // Clamp FOV to reasonable range
+          fov = clampValue(fov, 10, 170);
+
+          objects.push({
+            type: "fovCone",
+            color: source.options.color,
+            style: source.options.style as "wireframe" | "filled",
+            fov: fov,
+            depth: Number(source.options.depth),
+            poses: poses
+          });
+          break;
+        }
         case "cameraOverride":
         case "cameraOverrideLegacy":
           if (cameraOverride === null) {
