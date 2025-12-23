@@ -1,12 +1,12 @@
 {
-  "name": "advantagescope",
-  "productName": "AdvantageScope",
+  "name": "pantherscope",
+  "productName": "PantherScope",
   "version": "26.0.0-beta-2",
-  "description": "Robot telemetry application",
+  "description": "Robot telemetry application for FRC Team 5026",
   "author": {
-    "name": "Littleton Robotics",
-    "email": "software@littletonrobotics.org",
-    "url": "https://littletonrobotics.org"
+    "name": "FRC Team 5026 Iron Panthers",
+    "email": "burlingamerobotics@gmail.com",
+    "url": "https://ironpanthers.com"
   },
   "license": "BSD-3-Clause",
   "main": "bundles/main.js",
@@ -219,7 +219,7 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "icons/app/app-icon.ico"
+      "icon": "icons/app/pantherscope-icon.ico"
     }
   }
 }

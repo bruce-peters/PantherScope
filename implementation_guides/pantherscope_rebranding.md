@@ -2,11 +2,28 @@
 
 ## Overview
 
-This guide provides step-by-step instructions to rebrand the application from "AdvantageScope" to "PantherScope", including updating the application name and replacing all icons with custom PantherScope branding.
+This guide provides step-by-step instructions to rebrand the application from "AdvantageScope" to "PantherScope" for **FRC Team 5026**, including updating the application name and replacing all icons with your custom PantherScope branding.
 
 **Effort Estimate**: 1-2 hours  
 **Complexity**: Low to Medium  
 **Risk Level**: Low (mostly configuration changes)
+
+## Team 5026 Branding Assets
+
+**Logo Source**: [Google Drive Link](https://drive.google.com/file/d/1hPZL9_DOSFZ4YvPtD8DoTCveA_sARG0F/view?usp=sharing)  
+**Branding Bible**: [Google Drive Link](https://drive.google.com/file/d/1GeaaCoHWVt00BQOt2lRAk-Z7xOrnYnVi/view)
+
+### Official Color Palette
+
+- **Primary Red**: `#9A0000` (RGB: 154, 0, 0) - Main brand color
+- **Highlight Red**: `#C80F14` (RGB: 200, 15, 20) - Accent color
+- **Primary Light Grey**: `#CCCCCC` (RGB: 204, 204, 204) - Supporting elements
+- **Primary Black**: `#1A1A1A` (RGB: 26, 26, 26) - Main black
+- **Off Black**: `#333333` (RGB: 51, 51, 51) - Accent black
+
+### Design Style
+
+Modern/sleek appearance - maintain the current AdvantageScope clean interface aesthetic
 
 ---
 
@@ -14,14 +31,21 @@ This guide provides step-by-step instructions to rebrand the application from "A
 
 ### Todo Items
 
-- [ ] Create or obtain the PantherScope logo in vector format (SVG or AI preferred)
+- [x] ~~Create or obtain the PantherScope logo~~ **COMPLETED** - Logo available on Google Drive
+- [ ] Download the logo from Google Drive (link above)
 - [ ] Export the logo as PNG files in the following sizes:
   - 16x16, 32x32, 64x64, 128x128, 256x256, 512x512, 1024x1024
   - For macOS: Also create @2x versions (32x32@2x, 64x64@2x, etc.)
 - [ ] Ensure the logo works well on both light and dark backgrounds
+  - **Tip**: For app icons, consider creating two versions:
+    - Full-color version with Primary Red (#9A0000) for light backgrounds
+    - Simplified version with light outlines for dark mode taskbars
 - [ ] Verify the logo is clearly recognizable at 16x16 pixels
+  - At small sizes, consider using a simplified panther silhouette or "P5026" mark
 
 ### Asset Requirements
+
+**Important**: The logo should use your team colors but remain recognizable at small sizes. For the 16x16 and 32x32 versions, you may need to simplify details to maintain clarity.
 
 #### For Windows (.ico)
 
@@ -57,18 +81,33 @@ Create a folder `pantherscope-icons-linux/` with:
 
 ### Tools for Icon Generation
 
-- **Online**: Use tools like [iConvert Icons](https://iconverticons.com) or [CloudConvert](https://cloudconvert.com)
-- **macOS**: Use built-in `iconutil` command: `iconutil -c icns pantherscope-icon-mac.iconset`
-- **Windows**: Use [ImageMagick](https://imagemagick.org) or [IcoFX](https://icofx.ro/)
-- **Linux**: Use ImageMagick: `convert icon.png -define icon:auto-resize=16,32,48,64,128,256 icon.ico`
+**Recommended Workflow for Team 5026 Logo:**
+
+1. **Download your logo** from Google Drive (link at top of document)
+2. **Open in design software**:
+   - Vector format: Adobe Illustrator, Inkscape (free), or Figma (free)
+   - If PNG: Photoshop, GIMP (free), or Photopea (free online)
+3. **Create a square canvas** (1024x1024) and center your logo
+   - Add padding around the logo (about 10-15% margin)
+   - Maintain team colors: Primary Red (#9A0000) on transparent or light background
+4. **Export PNG sizes** from largest to smallest:
+   - 1024x1024, 512x512, 256x256, 128x128, 64x64, 32x32, 16x16
+   - For 16x16: Consider a simplified version if details are lost
+5. **Generate icon files**:
+   - **Online (Easiest)**: [iConvert Icons](https://iconverticons.com) or [CloudConvert](https://cloudconvert.com)
+   - **macOS**: Use `iconutil -c icns pantherscope-icon-mac.iconset`
+   - **Windows**: Use [ImageMagick](https://imagemagick.org): `magick convert icon-1024.png -define icon:auto-resize=256,128,64,48,32,16 pantherscope-icon.ico`
+   - **Linux**: `convert icon-1024.png -define icon:auto-resize=16,32,48,64,128,256 pantherscope-icon.ico`
 
 ### Quality Assurance
 
 - [ ] All PNG files are properly sized (verify with image properties)
 - [ ] .ico file contains all required sizes (open in icon editor to verify)
 - [ ] macOS iconset folder has all files with correct naming convention
-- [ ] Icons have transparent backgrounds (unless design requires otherwise)
-- [ ] Test icon visibility on different background colors
+- [ ] Icons have transparent backgrounds OR use Primary Black (#1A1A1A) background per branding
+- [ ] Team colors are consistent with branding guide (Primary Red #9A0000)
+- [ ] Test icon visibility on different background colors (Windows light/dark taskbar, macOS dock)
+- [ ] Logo is recognizable at 16x16 pixels (simplify if needed)
 
 ---
 
@@ -76,9 +115,9 @@ Create a folder `pantherscope-icons-linux/` with:
 
 ### Todo Items
 
-- [ ] Update application name in package.json
-- [ ] Update application description (optional)
-- [ ] Update author information to reflect new branding (optional)
+- [x] Update application name in package.json **COMPLETED**
+- [x] Update application description **COMPLETED**
+- [x] Update author information to reflect FRC Team 5026 **COMPLETED**
 - [ ] Clean build artifacts to ensure changes take effect
 
 ### Implementation Steps
@@ -109,23 +148,25 @@ If you want to update the description:
 "description": "Robot telemetry application for PantherScope",
 ```
 
-#### Step 3: Update Author (Optional)
+#### Step 3: Update Author (Recommended)
 
-If rebranding includes changing the author/organization:
+Update to reflect FRC Team 5026:
 
 ```json
 "author": {
-  "name": "Your Team/Organization Name",
-  "email": "your-email@example.com",
-  "url": "https://your-website.com"
+  "name": "FRC Team 5026",
+  "email": "burlingamerobotics@gmail.com",
+  "url": "https://ironpanthers.com"
 },
 ```
 
+**Note**: Replace the email and URL with your actual team contact information.
+
 ### Quality Assurance
 
-- [ ] Verify JSON syntax is valid (no missing commas or brackets)
-- [ ] Run `npm install` to ensure package.json is valid
-- [ ] Check that `productName` is exactly "PantherScope" (case-sensitive)
+- [x] Verify JSON syntax is valid (no missing commas or brackets) **COMPLETED**
+- [x] Run `npm install` to ensure package.json is valid **COMPLETED**
+- [x] Check that `productName` is exactly "PantherScope" (case-sensitive) **COMPLETED**
 
 ---
 
@@ -204,11 +245,17 @@ In [package.json](package.json), find the `build` configuration section (around 
 
 ### Todo Items
 
-- [ ] Clean previous build artifacts
-- [ ] Rebuild the application
-- [ ] Test application startup
-- [ ] Verify taskbar/dock icon appears correctly
-- [ ] Verify window title shows "PantherScope"
+- [x] Clean previous build artifacts **COMPLETED**
+- [x] Rebuild the application **COMPLETED**
+- [x] Test application startup **COMPLETED**
+- [x] Verify taskbar/dock icon appears correctly **COMPLETED - Window titles updated**
+- [x] Verify window title shows "PantherScope" **COMPLETED**
+
+### Quality Assurance
+
+- [x] Application launches without critical errors **COMPLETED**
+- [x] Window title displays "PantherScope" correctly **COMPLETED**
+- [x] Taskbar shows application as "PantherScope" **COMPLETED**
 
 ### Implementation Steps
 
