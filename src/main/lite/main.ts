@@ -182,6 +182,30 @@ function openPreferences() {
   });
 }
 
+/** Opens a popup window for sidebar color picker. */
+function openSidebarColorPicker() {
+  const width = 350;
+  const height = 160;
+
+  let prefs = DEFAULT_PREFS;
+  let prefsRaw = localStorage.getItem(LocalStorageKeys.PREFS);
+  if (prefsRaw !== null) mergePreferences(prefs, JSON.parse(prefsRaw));
+
+  openPopupWindow("www/sidebarColor.html", [width, height], "pixels", (message) => {
+    if (message === "cancel") {
+      closePopupWindow();
+      return;
+    }
+
+    closePopupWindow();
+    prefs.sidebarColor = message;
+    sendMessage(hubPort, "set-preferences", prefs);
+    localStorage.setItem(LocalStorageKeys.PREFS, JSON.stringify(prefs));
+  }).then((port) => {
+    port.postMessage(prefs.sidebarColor);
+  });
+}
+
 /** Opens a popup window for downloading logs. */
 function openDownload() {
   openPopupWindow("www/download.html", [35, 65], "percent", (message, port) => {
@@ -483,6 +507,13 @@ async function handleHubMessage(message: NamedMessage) {
                 content: `Toggle Controls (${modifier} / )`,
                 callback() {
                   sendMessage(hubPort, "toggle-controls");
+                }
+              },
+              "-",
+              {
+                content: "Sidebar Color...",
+                callback() {
+                  openSidebarColorPicker();
                 }
               }
             ];

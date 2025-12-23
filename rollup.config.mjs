@@ -138,6 +138,7 @@ const smallRendererBundles = [
   bundle("renameTab.ts", "renameTab.js", false, false),
   bundle("editFov.ts", "editFov.js", false, false),
   bundle("streamUrl.ts", "streamUrl.js", false, false),
+  bundle("sidebarColor.ts", "sidebarColor.js", false, false),
   bundle("sourceListHelp.ts", "sourceListHelp.js", false, false),
   bundle("betaWelcome.ts", "betaWelcome.js", false, false),
   bundle("preferences.ts", "preferences.js", false, false),

@@ -28,6 +28,7 @@ export default interface Preferences {
   skipFTCExperimentalWarning: boolean;
   skipFrcLogFolderDefault: boolean;
   ctreLicenseAccepted: boolean;
+  sidebarColor: string | null; // null = default alliance color, otherwise hex color
   usb?: boolean;
 }
 
@@ -50,7 +51,8 @@ export const DEFAULT_PREFS: Preferences = {
   skipFrcLogFolderDefault: false,
   skipNumericArrayDeprecationWarning: false,
   skipFTCExperimentalWarning: false,
-  ctreLicenseAccepted: false
+  ctreLicenseAccepted: false,
+  sidebarColor: null // Use default alliance color
 };
 
 export type LiveMode = "nt4" | "nt4-akit" | "phoenix" | "rlog" | "ftcdashboard";
@@ -193,5 +195,11 @@ export function mergePreferences(basePrefs: Preferences, newPrefs: object) {
   }
   if ("ctreLicenseAccepted" in newPrefs && typeof newPrefs.ctreLicenseAccepted === "boolean") {
     basePrefs.ctreLicenseAccepted = newPrefs.ctreLicenseAccepted;
+  }
+  if ("sidebarColor" in newPrefs && (typeof newPrefs.sidebarColor === "string" || newPrefs.sidebarColor === null)) {
+    // Validate hex color format if not null
+    if (newPrefs.sidebarColor === null || /^#[0-9A-F]{6}$/i.test(newPrefs.sidebarColor)) {
+      basePrefs.sidebarColor = newPrefs.sidebarColor;
+    }
   }
 }

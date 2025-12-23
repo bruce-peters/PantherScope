@@ -117,7 +117,8 @@ window.addEventListener("message", (event) => {
             skipFrcLogFolderDefault: oldPrefs.skipFrcLogFolderDefault,
             skipNumericArrayDeprecationWarning: oldPrefs.skipNumericArrayDeprecationWarning,
             skipFTCExperimentalWarning: oldPrefs.skipFTCExperimentalWarning,
-            ctreLicenseAccepted: oldPrefs.ctreLicenseAccepted
+            ctreLicenseAccepted: oldPrefs.ctreLicenseAccepted,
+            sidebarColor: oldPrefs.sidebarColor
           };
           messagePort.postMessage(newPrefs);
         } else {

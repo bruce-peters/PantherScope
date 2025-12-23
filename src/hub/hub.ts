@@ -181,6 +181,24 @@ function setExporting(exporting: boolean) {
   }
 }
 
+/** Apply sidebar color preference to CSS custom properties. */
+function applySidebarColor() {
+  if (!window.preferences) return;
+
+  const root = document.documentElement;
+  const customColor = window.preferences.sidebarColor;
+
+  if (customColor) {
+    // Use custom color for both light and dark modes
+    root.style.setProperty("--side-bar-bg-light", customColor);
+    root.style.setProperty("--side-bar-bg-dark", customColor);
+  } else {
+    // Reset to default colors
+    root.style.setProperty("--side-bar-bg-light", "#e9e9e9");
+    root.style.setProperty("--side-bar-bg-dark", "#292929");
+  }
+}
+
 // MANAGE STATE
 
 /** Returns the current state. */
@@ -602,6 +620,7 @@ async function handleMainMessage(message: NamedMessage) {
 
     case "set-preferences":
       window.preferences = message.data;
+      applySidebarColor();
       checkLiveAutoStart();
       break;
 

@@ -2171,6 +2171,15 @@ function setupMenu() {
             sendMessage(window, "toggle-controls");
           }
         },
+        { type: "separator" },
+        {
+          label: "Sidebar Color...",
+          click(_, baseWindow) {
+            const window = baseWindow as BrowserWindow | undefined;
+            if (window === undefined || !hubWindows.includes(window)) return;
+            openSidebarColorPicker(window);
+          }
+        },
         { role: "togglefullscreen" }
       ]
     },
@@ -2831,6 +2840,59 @@ function createStreamUrlWindow(
     port2.start();
   });
   streamUrlWindow.loadFile(path.join(__dirname, "../www/streamUrl.html"));
+}
+
+/**
+ * Creates a sidebar color picker window.
+ * @param parentWindow The parent window for alignment
+ */
+function openSidebarColorPicker(parentWindow: BrowserWindow) {
+  let prefs: Preferences = jsonfile.readFileSync(PREFS_FILENAME);
+
+  const width = 350;
+  const height = 160;
+  const sidebarColorWindow = new BrowserWindow({
+    width: width,
+    height: height,
+    x: Math.floor(parentWindow.getBounds().x + parentWindow.getBounds().width / 2 - width / 2),
+    y: Math.floor(parentWindow.getBounds().y + parentWindow.getBounds().height / 2 - height / 2),
+    useContentSize: true,
+    resizable: false,
+    alwaysOnTop: true,
+    icon: WINDOW_ICON,
+    show: false,
+    fullscreenable: false,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js")
+    }
+  });
+
+  sidebarColorWindow.setMenuBarVisibility(false);
+  sidebarColorWindow.once("ready-to-show", () => {
+    sidebarColorWindow.show();
+  });
+
+  sidebarColorWindow.webContents.on("dom-ready", () => {
+    // Create ports on reload
+    const { port1, port2 } = new MessageChannelMain();
+    sidebarColorWindow?.webContents.postMessage("port", null, [port1]);
+    port2.postMessage(prefs.sidebarColor);
+    port2.on("message", (event) => {
+      if (event.data === "cancel") {
+        sidebarColorWindow?.destroy();
+        return;
+      }
+
+      // Save new color preference
+      prefs.sidebarColor = event.data;
+      jsonfile.writeFileSync(PREFS_FILENAME, prefs);
+      sendAllPreferences();
+      sidebarColorWindow?.destroy();
+    });
+    port2.start();
+  });
+
+  sidebarColorWindow.loadFile(path.join(__dirname, "../www/sidebarColor.html"));
 }
 
 /**

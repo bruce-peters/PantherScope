@@ -19,6 +19,8 @@
   --show-feedback-button: 0;
   --show-loading-glow: 0;
   --loading-glow-progress: 1;
+  --side-bar-bg-light: #e9e9e9;
+  --side-bar-bg-dark: #292929;
 }
 
 /* Title bar layout */
@@ -181,7 +183,7 @@ div.side-bar-background {
   top: 0px;
   bottom: 0px;
 
-  background-color: #e9e9e9;
+  background-color: var(--side-bar-bg-light);
 }
 
 body.fancy-side-bar-mac div.side-bar-background {
@@ -194,7 +196,7 @@ body.fancy-side-bar-win div.side-bar-background {
 
 @media (prefers-color-scheme: dark) {
   div.side-bar-background {
-    background-color: #292929;
+    background-color: var(--side-bar-bg-dark);
   }
 }
 
