@@ -15,6 +15,7 @@ This guide outlines the implementation of FOV (Field of View) cone visualization
 ### 80/20 Approach
 
 This implementation focuses on the core functionality using:
+
 - Existing THREE.js geometry primitives (BufferGeometry/LineSegments or Mesh with transparency)
 - Source list configuration system for type options
 - Object manager pattern from existing 3D objects (ConeManager, AxesManager)
@@ -32,8 +33,9 @@ Add new FOV cone type to the Field3d configuration and TypeScript type system. T
 ### Tasks
 
 - [ ] **1.1** Add FOV cone object type to `src/shared/renderers/Field3dRenderer.ts`:
-  
+
   Add to `Field3dRendererCommand_AnyObj` union type (around line 139):
+
   ```typescript
   export type Field3dRendererCommand_AnyObj =
     | Field3dRendererCommand_RobotObj
@@ -45,10 +47,11 @@ Add new FOV cone type to the Field3d configuration and TypeScript type system. T
     | Field3dRendererCommand_AprilTagBuiltInObj
     | Field3dRendererCommand_AxesObj
     | Field3dRendererCommand_ConeObj
-    | Field3dRendererCommand_FovConeObj;  // NEW
+    | Field3dRendererCommand_FovConeObj; // NEW
   ```
-  
+
   Add new type definition (around line 210):
+
   ```typescript
   export type Field3dRendererCommand_FovConeObj = {
     type: "fovCone";
@@ -61,8 +64,9 @@ Add new FOV cone type to the Field3d configuration and TypeScript type system. T
   ```
 
 - [ ] **1.2** Add FOV cone type configuration to `src/hub/controllers/Field3dController_Config.ts`:
-  
+
   Add after the "cone" type (around line 700):
+
   ```typescript
   {
     key: "fovCone",
@@ -193,8 +197,9 @@ Implement FOV angle detection from child number fields and integrate FOV cone co
 ### Tasks
 
 - [ ] **2.1** Add FOV cone case to `src/hub/controllers/Field3dController.ts`:
-  
+
   Add in the `getCommand()` method, around line 540 (after existing vision/cone cases):
+
   ```typescript
   case "fovCone":
   case "fovConeLegacy": {
@@ -207,10 +212,10 @@ Implement FOV angle detection from child number fields and integrate FOV cone co
         fov = fovValues.values[0];
       }
     }
-    
+
     // Clamp FOV to reasonable range
     fov = clampValue(fov, 10, 170);
-    
+
     objects.push({
       type: "fovCone",
       color: source.options.color,
@@ -224,12 +229,13 @@ Implement FOV angle detection from child number fields and integrate FOV cone co
   ```
 
 - [ ] **2.2** Update `getActiveFields()` to include FOV child fields:
-  
+
   Modify in `src/hub/controllers/Field3dController.ts` (around line 229):
+
   ```typescript
   getActiveFields(): string[] {
     let activeFields = [...this.sourceList.getActiveFields(), ...ALLIANCE_KEYS, ...DRIVER_STATION_KEYS];
-    
+
     // Add FOV child fields for FOV cone types
     let sources = this.sourceList.getState(true);
     sources.forEach(source => {
@@ -237,7 +243,7 @@ Implement FOV angle detection from child number fields and integrate FOV cone co
         activeFields.push(source.logKey + "/fov");
       }
     });
-    
+
     return activeFields;
   }
   ```
@@ -262,7 +268,7 @@ Create the FovConeManager class to handle rendering FOV cones using THREE.js geo
 ### Tasks
 
 - [ ] **3.1** Create `src/shared/renderers/field3d/objectManagers/FovConeManager.ts`:
-  
+
   ```typescript
   // Copyright (c) 2021-2025 Littleton Robotics
   // http://github.com/Mechanical-Advantage
@@ -270,11 +276,11 @@ Create the FovConeManager class to handle rendering FOV cones using THREE.js geo
   // Use of this source code is governed by a BSD
   // license that can be found in the LICENSE file
   // at the root directory of this project.
-  
+
   import * as THREE from "three";
   import { Field3dRendererCommand_FovConeObj } from "../../Field3dRenderer";
   import ObjectManager from "../ObjectManager";
-  
+
   export default class FovConeManager extends ObjectManager<Field3dRendererCommand_FovConeObj> {
     private wireframeMeshes: THREE.LineSegments[] = [];
     private filledMeshes: THREE.Mesh[] = [];
@@ -282,7 +288,7 @@ Create the FovConeManager class to handle rendering FOV cones using THREE.js geo
     private lastColor = "";
     private lastFov = 60;
     private lastDepth = 2;
-  
+
     constructor(
       root: THREE.Object3D,
       materialSpecular: THREE.Color,
@@ -293,7 +299,7 @@ Create the FovConeManager class to handle rendering FOV cones using THREE.js geo
     ) {
       super(root, materialSpecular, materialShininess, mode, isXR, requestRender);
     }
-  
+
     dispose(): void {
       this.wireframeMeshes.forEach((mesh) => {
         mesh.geometry.dispose();
@@ -308,15 +314,15 @@ Create the FovConeManager class to handle rendering FOV cones using THREE.js geo
       this.wireframeMeshes = [];
       this.filledMeshes = [];
     }
-  
+
     setObjectData(object: Field3dRendererCommand_FovConeObj): void {
       // Check if we need to rebuild geometries
-      const needsRebuild = 
+      const needsRebuild =
         object.style !== this.lastStyle ||
         object.color !== this.lastColor ||
         object.fov !== this.lastFov ||
         object.depth !== this.lastDepth;
-  
+
       if (needsRebuild) {
         this.dispose();
         this.lastStyle = object.style;
@@ -324,16 +330,16 @@ Create the FovConeManager class to handle rendering FOV cones using THREE.js geo
         this.lastFov = object.fov;
         this.lastDepth = object.depth;
       }
-  
+
       // Calculate FOV cone dimensions
       const halfFovRad = (object.fov / 2) * (Math.PI / 180);
       const halfWidth = Math.tan(halfFovRad) * object.depth;
       const halfHeight = halfWidth; // Square FOV
-  
+
       // Ensure we have the right number of meshes
       const currentMeshes = object.style === "wireframe" ? this.wireframeMeshes : this.filledMeshes;
       const targetCount = object.poses.length;
-  
+
       // Remove excess meshes
       while (currentMeshes.length > targetCount) {
         const mesh = currentMeshes.pop()!;
@@ -341,7 +347,7 @@ Create the FovConeManager class to handle rendering FOV cones using THREE.js geo
         (mesh.material as THREE.Material).dispose();
         this.root.remove(mesh);
       }
-  
+
       // Add new meshes
       while (currentMeshes.length < targetCount) {
         if (object.style === "wireframe") {
@@ -365,87 +371,134 @@ Create the FovConeManager class to handle rendering FOV cones using THREE.js geo
           this.root.add(mesh);
         }
       }
-  
+
       // Update mesh positions and rotations
       object.poses.forEach((annotatedPose, index) => {
         const mesh = currentMeshes[index];
         const pose = annotatedPose.pose;
-        
+
         // Set position
-        mesh.position.set(
-          pose.translation[0],
-          pose.translation[2],
-          -pose.translation[1]
-        );
-        
+        mesh.position.set(pose.translation[0], pose.translation[2], -pose.translation[1]);
+
         // Set rotation
-        mesh.quaternion.set(
-          pose.rotation[0],
-          pose.rotation[2],
-          -pose.rotation[1],
-          pose.rotation[3]
-        );
+        mesh.quaternion.set(pose.rotation[0], pose.rotation[2], -pose.rotation[1], pose.rotation[3]);
       });
     }
-  
+
     /** Creates wireframe geometry showing 4 corner lines */
     private createWireframeGeometry(halfWidth: number, halfHeight: number, depth: number): THREE.BufferGeometry {
       const positions = new Float32Array([
         // Origin to top-left
-        0, 0, 0,
-        -halfWidth, halfHeight, depth,
+        0,
+        0,
+        0,
+        -halfWidth,
+        halfHeight,
+        depth,
         // Origin to top-right
-        0, 0, 0,
-        halfWidth, halfHeight, depth,
+        0,
+        0,
+        0,
+        halfWidth,
+        halfHeight,
+        depth,
         // Origin to bottom-left
-        0, 0, 0,
-        -halfWidth, -halfHeight, depth,
+        0,
+        0,
+        0,
+        -halfWidth,
+        -halfHeight,
+        depth,
         // Origin to bottom-right
-        0, 0, 0,
-        halfWidth, -halfHeight, depth,
+        0,
+        0,
+        0,
+        halfWidth,
+        -halfHeight,
+        depth,
         // Rectangle at far plane
-        -halfWidth, halfHeight, depth,
-        halfWidth, halfHeight, depth,
-        
-        halfWidth, halfHeight, depth,
-        halfWidth, -halfHeight, depth,
-        
-        halfWidth, -halfHeight, depth,
-        -halfWidth, -halfHeight, depth,
-        
-        -halfWidth, -halfHeight, depth,
-        -halfWidth, halfHeight, depth
+        -halfWidth,
+        halfHeight,
+        depth,
+        halfWidth,
+        halfHeight,
+        depth,
+
+        halfWidth,
+        halfHeight,
+        depth,
+        halfWidth,
+        -halfHeight,
+        depth,
+
+        halfWidth,
+        -halfHeight,
+        depth,
+        -halfWidth,
+        -halfHeight,
+        depth,
+
+        -halfWidth,
+        -halfHeight,
+        depth,
+        -halfWidth,
+        halfHeight,
+        depth
       ]);
-  
+
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
       return geometry;
     }
-  
+
     /** Creates filled geometry showing transparent faces */
     private createFilledGeometry(halfWidth: number, halfHeight: number, depth: number): THREE.BufferGeometry {
       const positions = new Float32Array([
         // Top face
-        0, 0, 0,
-        -halfWidth, halfHeight, depth,
-        halfWidth, halfHeight, depth,
-        
+        0,
+        0,
+        0,
+        -halfWidth,
+        halfHeight,
+        depth,
+        halfWidth,
+        halfHeight,
+        depth,
+
         // Right face
-        0, 0, 0,
-        halfWidth, halfHeight, depth,
-        halfWidth, -halfHeight, depth,
-        
+        0,
+        0,
+        0,
+        halfWidth,
+        halfHeight,
+        depth,
+        halfWidth,
+        -halfHeight,
+        depth,
+
         // Bottom face
-        0, 0, 0,
-        halfWidth, -halfHeight, depth,
-        -halfWidth, -halfHeight, depth,
-        
+        0,
+        0,
+        0,
+        halfWidth,
+        -halfHeight,
+        depth,
+        -halfWidth,
+        -halfHeight,
+        depth,
+
         // Left face
-        0, 0, 0,
-        -halfWidth, -halfHeight, depth,
-        -halfWidth, halfHeight, depth
+        0,
+        0,
+        0,
+        -halfWidth,
+        -halfHeight,
+        depth,
+        -halfWidth,
+        halfHeight,
+        depth
       ]);
-  
+
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
       geometry.computeVertexNormals();
@@ -476,15 +529,17 @@ Integrate the FovConeManager into the main 3D renderer implementation.
 ### Tasks
 
 - [ ] **4.1** Add FovConeManager to imports in `src/shared/renderers/Field3dRendererImpl.ts`:
-  
+
   Add to imports (around line 28):
+
   ```typescript
   import FovConeManager from "./field3d/objectManagers/FovConeManager";
   ```
 
 - [ ] **4.2** Initialize FovConeManager in constructor:
-  
+
   Add to the objectManagers array initialization (around line 290):
+
   ```typescript
   this.objectManagers.push({
     type: "fovCone",
@@ -501,7 +556,7 @@ Integrate the FovConeManager into the main 3D renderer implementation.
   ```
 
 - [ ] **4.3** Update XR initialization if needed:
-  
+
   Check if XR needs special handling (around line 320). If XR support is desired, add similar initialization in XR section.
 
 ### Quality Assurance Checks
@@ -525,39 +580,46 @@ Test the FOV cone visualization with various configurations and refine as needed
 ### Tasks
 
 - [ ] **5.1** Test basic wireframe visualization:
+
   - Create a test Pose3d field in log
   - Add as FOV Cone with wireframe style
   - Verify 4 corner lines appear correctly
   - Verify far plane rectangle renders
 
 - [ ] **5.2** Test filled visualization:
+
   - Switch style to filled
   - Verify 4 transparent faces appear
   - Check transparency (should be 30% opacity)
   - Verify faces are visible from all angles (DoubleSide)
 
 - [ ] **5.3** Test custom FOV angle:
+
   - Create `/fov` child field with number value
   - Try values: 30, 60, 90, 120
   - Verify cone widens/narrows appropriately
   - Verify clamping at 10 and 170 degrees
 
 - [ ] **5.4** Test depth options:
+
   - Try different depth values (1m, 2m, 3m, 5m)
   - Verify cone extends to correct distance
   - Verify proportions remain correct
 
 - [ ] **5.5** Test with multiple poses:
+
   - Create Pose3d[] array field
   - Verify multiple cones render simultaneously
   - Check performance with 10+ cones
 
 - [ ] **5.6** Test color options:
+
   - Try different neon colors
   - Verify color applies to both wireframe and filled
   - Check visibility in light and dark modes
 
 - [ ] **5.7** Test coordinate transformations:
+
   - Verify cone points in correct direction based on pose rotation
   - Test with different coordinate systems (wall-blue, center-rotated, etc.)
   - Verify with 2D and 3D poses
@@ -589,15 +651,17 @@ Add documentation and final polish to the feature.
 ### Tasks
 
 - [ ] **6.1** Add documentation to hover tooltip (optional):
-  
+
   Update `showDocs: true` tooltips if Field3dController_Config supports it.
 
 - [ ] **6.2** Update user documentation:
+
   - Document FOV cone type in user guides
   - Explain how to set custom FOV with child field
   - Provide example log structures
 
 - [ ] **6.3** Code cleanup:
+
   - Add JSDoc comments to FovConeManager methods
   - Ensure consistent naming conventions
   - Remove any debug console.log statements
@@ -624,6 +688,7 @@ Add documentation and final polish to the feature.
 ## Testing Checklist
 
 ### Functionality Tests
+
 - [ ] FOV cone appears for Pose3d fields
 - [ ] Wireframe shows 4 corner lines + rectangle
 - [ ] Filled shows 4 transparent faces
@@ -636,6 +701,7 @@ Add documentation and final polish to the feature.
 - [ ] Poses arrays work correctly
 
 ### Integration Tests
+
 - [ ] Works with Pose2d (converted to 3D)
 - [ ] Works with Pose3d
 - [ ] Works with Transform2d/3d
@@ -645,6 +711,7 @@ Add documentation and final polish to the feature.
 - [ ] Works in all 3D modes (cinematic, standard, low-power)
 
 ### Performance Tests
+
 - [ ] No lag with 10 FOV cones
 - [ ] Acceptable performance with 50 FOV cones
 - [ ] Geometry disposal prevents memory leaks
@@ -652,6 +719,7 @@ Add documentation and final polish to the feature.
 - [ ] No stuttering when FOV angle updates frequently
 
 ### UI/UX Tests
+
 - [ ] Type appears in source list correctly
 - [ ] Icon (camera.viewfinder) displays properly
 - [ ] Options menu works (color, style, depth)
@@ -660,6 +728,7 @@ Add documentation and final polish to the feature.
 - [ ] Follows existing 3D visualization patterns
 
 ### Cross-Platform Tests
+
 - [ ] Works on Windows (Electron)
 - [ ] Works on macOS (Electron)
 - [ ] Works on Linux (Electron)
@@ -710,6 +779,7 @@ Add documentation and final polish to the feature.
 ## Completion Criteria
 
 This feature is complete when:
+
 - [ ] All 6 phases have passing QA checks
 - [ ] All functionality tests pass
 - [ ] No TypeScript compilation errors
@@ -725,7 +795,7 @@ This feature is complete when:
 ## Estimated Implementation Time
 
 - **Phase 1** (Type System): 30-45 minutes
-- **Phase 2** (Data Flow): 45-60 minutes  
+- **Phase 2** (Data Flow): 45-60 minutes
 - **Phase 3** (Object Manager): 2-3 hours
 - **Phase 4** (Integration): 30-45 minutes
 - **Phase 5** (Testing): 2-3 hours
@@ -738,6 +808,7 @@ This feature is complete when:
 ## Future Enhancements (Post-MVP)
 
 ### Nice-to-Have Features
+
 - Aspect ratio support (rectangular FOV)
 - Adjustable near plane
 - Grid overlay on FOV face
@@ -748,6 +819,7 @@ This feature is complete when:
 - Animation/transition effects
 
 ### Advanced Features
+
 - Multiple camera support (multi-camera rigs)
 - Stereo camera FOV pairs
 - Fisheye lens visualization
@@ -774,8 +846,9 @@ This feature is complete when:
 ## Contact and Support
 
 For questions or issues during implementation:
+
 - Review existing ObjectManager implementations
-- Check THREE.js documentation for geometry questions  
+- Check THREE.js documentation for geometry questions
 - Refer to Field3dController for command generation patterns
 - Test incrementally - each phase should compile and run
 - Use browser dev tools for 3D debugging and performance profiling
