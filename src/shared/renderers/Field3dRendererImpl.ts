@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2025 Littleton Robotics
+// Copyright (c) 2021-2026 Littleton Robotics
 // http://github.com/Mechanical-Advantage
 //
 // Use of this source code is governed by a BSD
@@ -169,11 +169,14 @@ export default class Field3dRendererImpl implements TabRenderer {
 
     // Change camera menu
     let startPx: [number, number] | null = null;
-    canvas.addEventListener("contextmenu", (event) => {
-      startPx = [event.x, event.y];
+    canvas.addEventListener("mousedown", (event) => {
+      if (event.button === 2) {
+        // Right-click
+        startPx = [event.clientX, event.clientY];
+      }
     });
     canvas.addEventListener("mouseup", (event) => {
-      if (startPx && event.x === startPx[0] && event.y === startPx[1]) {
+      if (startPx && event.clientX === startPx[0] && event.clientY === startPx[1]) {
         let robotConfig = window.assets?.robots.find((robotData) => robotData.name === this.primaryRobotModel);
         let cameraList = robotConfig === undefined ? [] : robotConfig.cameras.map((camera) => camera.name);
         window.sendMainMessage("ask-3d-camera", {
@@ -735,7 +738,7 @@ export default class Field3dRendererImpl implements TabRenderer {
         newFieldReady();
       } else {
         this.isFieldLoading = true;
-        WorkerManager.request("../bundles/shared$loadField.js", {
+        WorkerManager.request("../bundles/loadField.js", {
           fieldConfig: fieldConfig,
           mode: this.mode,
           materialSpecular: this.MATERIAL_SPECULAR.toArray(),

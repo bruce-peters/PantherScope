@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2025 Littleton Robotics
+// Copyright (c) 2021-2026 Littleton Robotics
 // http://github.com/Mechanical-Advantage
 //
 // Use of this source code is governed by a BSD
@@ -266,7 +266,7 @@ export default class FTCDashboardSource extends LiveDataSource implements LiveDa
     return this.configState !== initialState;
   }
   isTunable(key: string): boolean {
-    return this.tunableKeysTypes.get(key) != undefined;
+    return this.tunableKeysTypes.get(key) !== undefined;
   }
   publish(key: string, value: number | boolean): void {
     if (!this.isTunable(key)) {

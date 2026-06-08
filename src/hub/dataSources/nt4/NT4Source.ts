@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2025 Littleton Robotics
+// Copyright (c) 2021-2026 Littleton Robotics
 // http://github.com/Mechanical-Advantage
 //
 // Use of this source code is governed by a BSD
@@ -231,6 +231,17 @@ export default class NT4Source extends LiveDataSource {
         },
         (topic: NT4_Topic) => {
           // Unannounce
+        },
+        (topic: NT4_Topic) => {
+          // Properties
+          if (!this.log) return;
+          if (topic.name === "") return;
+          let modifiedKey = this.getKeyFromTopic(topic);
+          this.log.setMetadataString(
+            modifiedKey,
+            Object.keys(topic.properties).length > 0 ? JSON.stringify(topic.properties) : ""
+          );
+          this.shouldRunOutputCallback = true;
         },
         (topic: NT4_Topic, timestamp_us: number, value: unknown) => {
           // Data

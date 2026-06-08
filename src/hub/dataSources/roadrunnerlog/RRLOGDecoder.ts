@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2025 Littleton Robotics
+// Copyright (c) 2021-2026 Littleton Robotics
 // http://github.com/Mechanical-Advantage
 //
 // Use of this source code is governed by a BSD
@@ -202,7 +202,7 @@ export default class RRLOGDecoder {
                 // Automatically parse timestamp fields of Road Runner's built in message classes
               } else if (msg instanceof Map && msg.has("timestamp")) {
                 let timestamp = msg.get("timestamp");
-                if (timestamp != undefined && typeof timestamp === "bigint") {
+                if (timestamp !== undefined && typeof timestamp === "bigint") {
                   this.lastTimestamp = rrTimestampToSeconds(timestamp);
                 }
               }
