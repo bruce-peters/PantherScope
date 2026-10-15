@@ -140,6 +140,8 @@ export default (cliArgs) => {
         "unitConversion.ts",
         "renameTab.ts",
         "editFov.ts",
+        "streamUrl.ts",
+        "sidebarColor.ts",
         "sourceListHelp.ts",
         "betaWelcome.ts",
         "preferences.ts",

@@ -6,7 +6,7 @@
 // at the root directory of this project.
 
 const COLOR_PICKER = document.getElementById("colorPicker") as HTMLInputElement;
-const USE_DEFAULT_BUTTON = document.getElementById("useDefault") as HTMLButtonElement;
+const USE_DEFAULT_BUTTON = document.getElementById("useDefault") as HTMLButtonElement | null; // Not in sidebarColor.html
 const EXIT_BUTTON = document.getElementById("exit") as HTMLInputElement;
 const CONFIRM_BUTTON = document.getElementById("confirm") as HTMLInputElement;
 
@@ -37,7 +37,7 @@ window.addEventListener("message", (event) => {
 });
 
 // Set up button event listeners
-USE_DEFAULT_BUTTON.addEventListener("click", () => {
+USE_DEFAULT_BUTTON?.addEventListener("click", () => {
   if (messagePort) {
     messagePort.postMessage(null);
   }
