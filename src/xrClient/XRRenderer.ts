@@ -26,6 +26,7 @@ import optimizeGeometries, { FTC_MULTIPLIER, XR_MAX_RADIUS } from "../shared/ren
 import AprilTagManager from "../shared/renderers/field3d/objectManagers/AprilTagManager";
 import AxesManager from "../shared/renderers/field3d/objectManagers/AxesManager";
 import ConeManager from "../shared/renderers/field3d/objectManagers/ConeManager";
+import FovConeManager from "../shared/renderers/field3d/objectManagers/FovConeManager";
 import GamePieceManager from "../shared/renderers/field3d/objectManagers/GamePieceManager";
 import HeatmapManager from "../shared/renderers/field3d/objectManagers/HeatmapManager";
 import RobotManager from "../shared/renderers/field3d/objectManagers/RobotManager";
@@ -294,6 +295,9 @@ export default class XRRenderer {
         break;
       case "cone":
         manager = new ConeManager(...args);
+        break;
+      case "fovCone":
+        manager = new FovConeManager(...args);
         break;
     }
     manager.setResolution(this.resolution);

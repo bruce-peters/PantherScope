@@ -663,6 +663,9 @@ export class VideoProcessor {
         }
         reject(true); // Silent reject to avoid double dialogs if the caller also has a catch block
       }
+    });
+  }
+
   /** Callback for showing the stream URL input dialog - set by main.ts */
   static showStreamUrlDialog: ((window: BrowserWindow, initialUrl: string) => Promise<string | null>) | null = null;
 
@@ -703,23 +706,6 @@ export class VideoProcessor {
     } catch {
       return false;
     }
-  }
-
-  /** Gets the direct download URL based on a YouTube URL */
-  private static getDirectUrlFromYouTubeUrl(youTubeUrl: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      ytdl
-        .getInfo(youTubeUrl)
-        .then((info) => {
-          let format = ytdl.chooseFormat(info.formats, { quality: "highestvideo", filter: "videoonly" });
-          if (format.url) {
-            resolve(format.url);
-          } else {
-            reject();
-          }
-        })
-        .catch(reject);
-    });
   }
 
   /** Uses the TBA API to get the YouTube URL for a match. */
